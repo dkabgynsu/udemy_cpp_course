@@ -3,12 +3,24 @@
 #include <string>
 #include <map>
 #include <iomanip>
+#include <sstream>
+#include <cctype>
 
 using std::cout;
 using std::cin;
 using std::endl;
 
-void display(std::map<std::string, int> m)
+std::string clean_string(std::string &str)
+{
+    if(!isalpha(static_cast<char>(str.back())))
+    {
+        str.pop_back();
+    }
+    return str;
+
+}
+
+void display(const std::map<std::string, int> &m)
 {
     int width_col1 = 15;
     int width_col2 = 10;
@@ -21,7 +33,8 @@ void display(std::map<std::string, int> m)
 
     for(std::pair<std::string, int>p : m)
     {
-        
+        cout << std::setw(width_col1) << std::left << p.first;
+        cout << std::setw(width_col2) << p.second << endl;
     }
 
 }
@@ -29,7 +42,6 @@ void display(std::map<std::string, int> m)
 int main()
 {
     std::ifstream in_file{"words.txt"};
-    std::string line{};
     std::map<std::string, int> dictionary{};
 
     if(!in_file.is_open())
@@ -38,33 +50,30 @@ int main()
         return -1;
     }
 
+    std::string word{""};
+    std::string line {""};
     while(!in_file.eof())
     {
         std::getline(in_file, line);
-        std::string word{};
-        for(char c: line)
+        std::stringstream ss{line};
+        
+        while(ss>>word)
         {
-            if(c==' ' || c == '\n')
+            word = clean_string(word);
+
+            if(dictionary.count(word))
             {
-                if(dictionary.count(word))
-                {
-                    dictionary[word]++;
-                }
-                else
-                {
-                    dictionary.insert(std::make_pair(word, 0));
-                }
+                dictionary[word]++;
+
             }
             else
             {
-                word += c;
+                dictionary.insert(std::make_pair(word, 1));
             }
-        }
+            word = "";
+        }    
     }
-    
-
-
-
-
+    in_file.close();
+    display(dictionary);
     return 0;
 }
